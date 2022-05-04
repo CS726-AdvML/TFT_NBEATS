@@ -1,10 +1,11 @@
 # Informer: Beyond Efficient Transformer for Long Sequence Time-Series Forecasting (AAAI'21 Best Paper)
+
 ![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg?style=plastic)
 ![PyTorch 1.2](https://img.shields.io/badge/PyTorch%20-%23EE4C2C.svg?style=plastic)
 ![cuDNN 7.3.1](https://img.shields.io/badge/cudnn-7.3.1-green.svg?style=plastic)
 ![License CC BY-NC-SA](https://img.shields.io/badge/license-CC_BY--NC--SA--green.svg?style=plastic)
 
-This is the origin Pytorch implementation of Informer in the following paper: 
+This is the origin Pytorch implementation of Informer in the following paper:
 [Informer: Beyond Efficient Transformer for Long Sequence Time-Series Forecasting](https://arxiv.org/abs/2012.07436). Special thanks to `Jieqi Peng`@[cookieminions](https://github.com/cookieminions) for building this repo.
 
 :triangular_flag_on_post:**News**(Mar 25, 2021): We update all experiment [results](#resultslink) with hyperparameter settings.
@@ -20,8 +21,10 @@ This is the origin Pytorch implementation of Informer in the following paper:
 </p>
 
 ## ProbSparse Attention
+
 The self-attention scores form a long-tail distribution, where the "active" queries lie in the "head" scores and "lazy" queries lie in the "tail" area. We designed the ProbSparse Attention to select the "active" queries rather than the "lazy" queries. The ProbSparse Attention with Top-u queries forms a sparse Transformer by the probability distribution.
 `Why not use Top-u keys?` The self-attention layer's output is the re-represent of input. It is formulated as a weighted combination of values w.r.t. the score of dot-product pairs. The top queries with full keys encourage a complete re-represent of leading components in the input, and it is equivalent to selecting the "head" scores among all the dot-product pairs. If we choose Top-u keys, the full keys just preserve the trivial sum of values within the "long tail" scores but wreck the leading components' re-represent.
+
 <p align="center">
 <img src=".\img\probsparse_intro.png" height = "320" alt="" align=center />
 <br><br>
@@ -38,6 +41,7 @@ The self-attention scores form a long-tail distribution, where the "active" quer
 - torch == 1.8.0
 
 Dependencies can be installed using the following command:
+
 ```bash
 pip install -r requirements.txt
 ```
@@ -54,25 +58,29 @@ The required data files should be put into `data/ETT/` folder. A demo slice of t
 </p>
 
 The ECL data and Weather data can be downloaded here.
+
 - [Google Drive](https://drive.google.com/drive/folders/1ohGYWWohJlOlb2gsGTeEq3Wii2egnEPR?usp=sharing)
-- [BaiduPan](https://pan.baidu.com/s/1wyaGUisUICYHnfkZzWCwyA), password: 6gan 
+- [BaiduPan](https://pan.baidu.com/s/1wyaGUisUICYHnfkZzWCwyA), password: 6gan
 
 ## Reproducibility
 
 To easily reproduce the results you can follow the next steps:
+
 1. Initialize the docker image using: `make init`.
 2. Download the datasets using: `make dataset`.
 3. Run each script in `scripts/` using `make run_module module="bash ETTh1.sh"` for each script.
 4. Alternatively, run all the scripts at once:
+
 ```
 for file in `ls scripts`; do make run_module module="bash scripts/$script"; done
 ```
 
 ## Usage
+
 <span id="colablink">Colab Examples:</span> We provide google colabs to help reproduce and customize our repo, which includes `experiments(train and test)`, `prediction`, `visualization` and `custom data`.
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1_X7O2BkFLvqyCdZzDZvV2MB0aAvYALLC)
 
-Commands for training and testing the model with *ProbSparse* self-attention on Dataset ETTh1, ETTh2 and ETTm1 respectively:
+Commands for training and testing the model with _ProbSparse_ self-attention on Dataset ETTh1, ETTh2 and ETTm1 respectively:
 
 ```bash
 # ETTh1
@@ -107,55 +115,54 @@ python -u main_informer.py --model <model> --data <data>
 
 The detailed descriptions about the arguments are as following:
 
-| Parameter name | Description of parameter |
-| --- | --- |
-| model | The model of experiment. This can be set to `informer`, `informerstack`, `informerlight(TBD)` |
-| data           | The dataset name                                             |
-| root_path      | The root path of the data file (defaults to `./data/ETT/`)    |
-| data_path      | The data file name (defaults to `ETTh1.csv`)                  |
-| features       | The forecasting task (defaults to `M`). This can be set to `M`,`S`,`MS` (M : multivariate predict multivariate, S : univariate predict univariate, MS : multivariate predict univariate) |
-| target         | Target feature in S or MS task (defaults to `OT`)             |
-| freq           | Freq for time features encoding (defaults to `h`). This can be set to `s`,`t`,`h`,`d`,`b`,`w`,`m` (s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly).You can also use more detailed freq like 15min or 3h |
-| checkpoints    | Location of model checkpoints (defaults to `./checkpoints/`)  |
-| seq_len | Input sequence length of Informer encoder (defaults to 96) |
-| label_len | Start token length of Informer decoder (defaults to 48) |
-| pred_len | Prediction sequence length (defaults to 24) |
-| enc_in | Encoder input size (defaults to 7) |
-| dec_in | Decoder input size (defaults to 7) |
-| c_out | Output size (defaults to 7) |
-| d_model | Dimension of model (defaults to 512) |
-| n_heads | Num of heads (defaults to 8) |
-| e_layers | Num of encoder layers (defaults to 2) |
-| d_layers | Num of decoder layers (defaults to 1) |
-| s_layers | Num of stack encoder layers (defaults to `3,2,1`) |
-| d_ff | Dimension of fcn (defaults to 2048) |
-| factor | Probsparse attn factor (defaults to 5) |
-| padding | Padding type(defaults to 0). |
-| distil | Whether to use distilling in encoder, using this argument means not using distilling (defaults to `True`) |
-| dropout | The probability of dropout (defaults to 0.05) |
-| attn | Attention used in encoder (defaults to `prob`). This can be set to `prob` (informer), `full` (transformer) |
-| embed | Time features encoding (defaults to `timeF`). This can be set to `timeF`, `fixed`, `learned` |
-| activation | Activation function (defaults to `gelu`) |
-| output_attention | Whether to output attention in encoder, using this argument means outputing attention (defaults to `False`) |
-| do_predict | Whether to predict unseen future data, using this argument means making predictions (defaults to `False`) |
-| mix | Whether to use mix attention in generative decoder, using this argument means not using mix attention (defaults to `True`) |
-| cols | Certain cols from the data files as the input features |
-| num_workers | The num_works of Data loader (defaults to 0) |
-| itr | Experiments times (defaults to 2) |
-| train_epochs | Train epochs (defaults to 6) |
-| batch_size | The batch size of training input data (defaults to 32) |
-| patience | Early stopping patience (defaults to 3) |
-| learning_rate | Optimizer learning rate (defaults to 0.0001) |
-| des | Experiment description (defaults to `test`) |
-| loss | Loss function (defaults to `mse`) |
-| lradj | Ways to adjust the learning rate (defaults to `type1`) |
-| use_amp | Whether to use automatic mixed precision training, using this argument means using amp (defaults to `False`) |
-| inverse | Whether to inverse output data, using this argument means inversing output data (defaults to `False`) |
-| use_gpu | Whether to use gpu (defaults to `True`) |
-| gpu | The gpu no, used for training and inference (defaults to 0) |
-| use_multi_gpu | Whether to use multiple gpus, using this argument means using mulitple gpus (defaults to `False`) |
-| devices | Device ids of multile gpus (defaults to `0,1,2,3`) |
-
+| Parameter name   | Description of parameter                                                                                                                                                                                                                 |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| model            | The model of experiment. This can be set to `informer`, `informerstack`, `informerlight(TBD)`                                                                                                                                            |
+| data             | The dataset name                                                                                                                                                                                                                         |
+| root_path        | The root path of the data file (defaults to `./data/ETT/`)                                                                                                                                                                               |
+| data_path        | The data file name (defaults to `ETTh1.csv`)                                                                                                                                                                                             |
+| features         | The forecasting task (defaults to `M`). This can be set to `M`,`S`,`MS` (M : multivariate predict multivariate, S : univariate predict univariate, MS : multivariate predict univariate)                                                 |
+| target           | Target feature in S or MS task (defaults to `OT`)                                                                                                                                                                                        |
+| freq             | Freq for time features encoding (defaults to `h`). This can be set to `s`,`t`,`h`,`d`,`b`,`w`,`m` (s:secondly, t:minutely, h:hourly, d:daily, b:business days, w:weekly, m:monthly).You can also use more detailed freq like 15min or 3h |
+| checkpoints      | Location of model checkpoints (defaults to `./checkpoints/`)                                                                                                                                                                             |
+| seq_len          | Input sequence length of Informer encoder (defaults to 96)                                                                                                                                                                               |
+| label_len        | Start token length of Informer decoder (defaults to 48)                                                                                                                                                                                  |
+| pred_len         | Prediction sequence length (defaults to 24)                                                                                                                                                                                              |
+| enc_in           | Encoder input size (defaults to 7)                                                                                                                                                                                                       |
+| dec_in           | Decoder input size (defaults to 7)                                                                                                                                                                                                       |
+| c_out            | Output size (defaults to 7)                                                                                                                                                                                                              |
+| d_model          | Dimension of model (defaults to 512)                                                                                                                                                                                                     |
+| n_heads          | Num of heads (defaults to 8)                                                                                                                                                                                                             |
+| e_layers         | Num of encoder layers (defaults to 2)                                                                                                                                                                                                    |
+| d_layers         | Num of decoder layers (defaults to 1)                                                                                                                                                                                                    |
+| s_layers         | Num of stack encoder layers (defaults to `3,2,1`)                                                                                                                                                                                        |
+| d_ff             | Dimension of fcn (defaults to 2048)                                                                                                                                                                                                      |
+| factor           | Probsparse attn factor (defaults to 5)                                                                                                                                                                                                   |
+| padding          | Padding type(defaults to 0).                                                                                                                                                                                                             |
+| distil           | Whether to use distilling in encoder, using this argument means not using distilling (defaults to `True`)                                                                                                                                |
+| dropout          | The probability of dropout (defaults to 0.05)                                                                                                                                                                                            |
+| attn             | Attention used in encoder (defaults to `prob`). This can be set to `prob` (informer), `full` (transformer)                                                                                                                               |
+| embed            | Time features encoding (defaults to `timeF`). This can be set to `timeF`, `fixed`, `learned`                                                                                                                                             |
+| activation       | Activation function (defaults to `gelu`)                                                                                                                                                                                                 |
+| output_attention | Whether to output attention in encoder, using this argument means outputing attention (defaults to `False`)                                                                                                                              |
+| do_predict       | Whether to predict unseen future data, using this argument means making predictions (defaults to `False`)                                                                                                                                |
+| mix              | Whether to use mix attention in generative decoder, using this argument means not using mix attention (defaults to `True`)                                                                                                               |
+| cols             | Certain cols from the data files as the input features                                                                                                                                                                                   |
+| num_workers      | The num_works of Data loader (defaults to 0)                                                                                                                                                                                             |
+| itr              | Experiments times (defaults to 2)                                                                                                                                                                                                        |
+| train_epochs     | Train epochs (defaults to 6)                                                                                                                                                                                                             |
+| batch_size       | The batch size of training input data (defaults to 32)                                                                                                                                                                                   |
+| patience         | Early stopping patience (defaults to 3)                                                                                                                                                                                                  |
+| learning_rate    | Optimizer learning rate (defaults to 0.0001)                                                                                                                                                                                             |
+| des              | Experiment description (defaults to `test`)                                                                                                                                                                                              |
+| loss             | Loss function (defaults to `mse`)                                                                                                                                                                                                        |
+| lradj            | Ways to adjust the learning rate (defaults to `type1`)                                                                                                                                                                                   |
+| use_amp          | Whether to use automatic mixed precision training, using this argument means using amp (defaults to `False`)                                                                                                                             |
+| inverse          | Whether to inverse output data, using this argument means inversing output data (defaults to `False`)                                                                                                                                    |
+| use_gpu          | Whether to use gpu (defaults to `True`)                                                                                                                                                                                                  |
+| gpu              | The gpu no, used for training and inference (defaults to 0)                                                                                                                                                                              |
+| use_multi_gpu    | Whether to use multiple gpus, using this argument means using mulitple gpus (defaults to `False`)                                                                                                                                        |
+| devices          | Device ids of multile gpus (defaults to `0,1,2,3`)                                                                                                                                                                                       |
 
 ## <span id="resultslink">Results</span>
 
@@ -175,12 +182,12 @@ Besides, the experiment parameters of each data set are formated in the `.sh` fi
 <b>Figure 5.</b> Multivariate forecasting results.
 </p>
 
-
 ## FAQ
+
 If you run into a problem like `RuntimeError: The size of tensor a (98) must match the size of tensor b (96) at non-singleton dimension 1`, you can check torch version or modify code about `Conv1d` of `TokenEmbedding` in `models/embed.py` as the way of circular padding mode in Conv1d changed in different torch versions.
 
-
 ## <span id="citelink">Citation</span>
+
 If you find this repository useful in your research, please consider citing the following paper:
 
 ```
@@ -203,9 +210,11 @@ If you find this repository useful in your research, please consider citing the 
 ```
 
 ## Contact
+
 If you have any questions, feel free to contact Haoyi Zhou through Email (zhouhaoyi1991@gmail.com) or Github issues. Pull requests are highly welcomed!
 
 ## Acknowledgments
+
 Thanks for the computing infrastructure provided by Beijing Advanced Innovation Center for Big Data and Brain Computing ([BDBC](http://bdbc.buaa.edu.cn/)).
 At the same time, thank you all for your attention to this work! [![Hits](https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fgithub.com%2Fzhouhaoyi%2FInformer2020&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=Hits+Count&edge_flat=false)](https://hits.seeyoufarm.com)
 [![Stargazers repo roster for @zhouhaoyi/Informer2020](https://reporoster.com/stars/zhouhaoyi/Informer2020)](https://github.com/zhouhaoyi/Informer2020/stargazers)
