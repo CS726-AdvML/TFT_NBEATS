@@ -3,3 +3,4 @@ __pycache__
 .vscode/
 *.npy
 coding/Informer2020/checkpoints/*
+coding/TFT/outputs
